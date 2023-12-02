@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Wavy - Admin Panel {% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='admin.js')}}" defer></script>
+{% endblock %}
+{% block body %}
+<div class="container">
+    <h1>Wavy Admin Panel</h1>
+    <form action="/item-form" method="post">
+        <div class="mb-3">
+            <label for="item-select" class="form-label">Select an item to add:</label>
+            <select class="form-select" id="item-select" name="item-select">
+                <option value="accessories">Accessories</option>
+                <option value="jeans">Jeans</option>
+                <option value="shoes">Shoes</option>
+                <option value="shirts">Shirts</option>
+            </select>
+            <button type='submit' id="select-btn" class="btn btn-primary mt-3">Add Item</button>
+        </div>
+    </form>
+    {% if item == 'accessories' %}
+        <form action="/accessories-form" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="itemName-acc" class="form-label">Item Name</label>
+                <input type="text" class="form-control" id="itemName-acc" placeholder="Item Name" name="name">
+                <div class="form-text">The item name that will show in the shop</div>
+              </div>
+              <div class="mb-3">
+                <label for="itemPrice-acc" class="form-label">Price</label>
+                <input type="number" class="form-control" id="itemPrice-acc" name="price">
+              </div>
+              <div class="mb-3">
+                <label for="itemQty-acc" class="form-label">Item Qty</label>
+                <input type="number" class="form-control" id="itemQty-acc" placeholder="Item Quantity" name="qty">
+                <div class="form-text">The number of items you will have in stock</div>
+              </div>
+              <div class="mb-3">
+                <label for="itemType-acc" class="form-label">Item Type</label>
+                <input type="text" class="form-control" id="itemType-acc" placeholder="Gloves, hats, chains, etc." name="type">
+                <div class="form-text">The type of item.</div>
+              </div>
+              <div class="mb-3">
+                <label for="itemImage-acc" class="form-label">Item Image</label>
+                <input type="file" name="image" id="itemImage-acc" required>
+              </div>
+              <button type="submit" class="btn btn-primary">Submit Item</button>
+        </form>
+    {% elif item == 'jeans' %}
+    <form action="/jeans-form" method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="itemName-j" class="form-label">Item Name</label>
+            <input type="text" name="name" class="form-control" id="itemName-j" placeholder="Item Name">
+            <div class="form-text">The item name that will show in the shop</div>
+          </div>
+          <div class="mb-3">
+            <label for="itemPrice-j" class="form-label">Price</label>
+            <input type="number" name="price" class="form-control" id="itemPrice-j">
+          </div>
+          <div class="mb-3">
+            <label for="itemGender-j" class="form-label">Gender</label>
+            <input type="text" class="form-control" name="gender" id="itemGender-j" placeholder="M/F">
+            <div class="form-text">The gender for which the item is</div>
+          </div>
+          <div class="mb-3">
+            <label for="itemQty-j" class="form-label">Item Qty</label>
+            <input type="number" name="qty" class="form-control" id="itemQty-j" placeholder="Item Quantity">
+            <div class="form-text">The number of items you will have in stock</div>
+          </div>
+          <div class="mb-3">
+            <label for="itemType-j" class="form-label">Item Type</label>
+            <input type="text" name="type" class="form-control" id="itemType-j" placeholder="Denim, ripped, cargo, etc.">
+            <div class="form-text">The type of item.</div>
+          </div>
+          <div class="mb-3">
+            <label for="itemImage-j" class="form-label">Item Image</label>
+            <input type="file" name="image" id="itemImage-j" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit Item</button>
+    </form>
+    {% elif item == 'shoes' %}
+    <form action="/shoes-form" method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="itemName-shoe" class="form-label">Item Name</label>
+            <input type="text" name="name" class="form-control" id="itemName-shoe" placeholder="Item Name">
+            <div class="form-text">The item name that will show in the shop</div>
+          </div>
+          <div class="mb-3">
+            <label for="itemPrice-shoe" class="form-label">Price</label>
+            <input type="number" name="price" class="form-control" id="itemPrice-shoe">
+          </div>
+          <div class="mb-3">
+            <label for="itemGender-shoe" class="form-label">Gender</label>
+            <input type="text" name="gender" class="form-control" maxlength="1" id="itemGender-shoe" placeholder="M/F">
+            <div class="form-text">The gender for which the item is</div>
+          </div>
+          <div class="mb-3">
+            <label for="itemQty-shoe" class="form-label">Item Quantity</label>
+            <input type="number" name="qty" class="form-control" id="itemQty-shoe" placeholder="Item Quantity">
+            <div class="form-text">The number of items you will have in stock</div>
+          </div>
+          <div class="mb-3">
+            <label for="itemType-shoe" class="form-label">Item Type</label>
+            <input type="text" name="type" class="form-control" id="itemType-shoe" placeholder="Joggers, slippers, sandals, etc.">
+            <div class="form-text">The type of item.</div>
+          </div>
+          <div class="mb-3">
+            <label for="itemImage-shoe" class="form-label">Item Image</label>
+            <input type="file" name="image" id="itemImage-shoe" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit Item</button>
+    </form>
+    {% elif item == 'shirts' %}
+    <form action="/shirt-form" method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="itemName-shirt" class="form-label">Item Name</label>
+            <input type="text" name="name" class="form-control" id="itemName-shirt" placeholder="Item Name">
+            <div class="form-text">The item name that will show in the shop</div>
+          </div>
+          <div class="mb-3">
+            <label for="itemPrice-shirt" class="form-label">Price</label>
+            <input type="number" name="price" class="form-control" id="itemPrice-shirt">
+          </div>
+          <div class="mb-3">
+            <label for="itemGender-shirt" class="form-label">Gender</label>
+            <input type="text" name="gender" class="form-control" maxlength="1" id="itemGender-shirt" placeholder="M/F">
+            <div class="form-text">The gender for which the item is</div>
+          </div>
+          <div class="mb-3">
+            <label for="itemQty-shirt" class="form-label">Item Quantity</label>
+            <input type="number" name="qty" class="form-control" id="itemQty-shirt" placeholder="Item Quantity">
+            <div class="form-text">The number of items you will have in stock</div>
+          </div>
+          <div class="mb-3">
+            <label for="itemType-shirt" class="form-label">Item Type</label>
+            <input type="text" name="type" class="form-control" id="itemType-shirt" placeholder="T-Shirt, Shirts, Cargo, etc.">
+            <div class="form-text">The type of item.</div>
+          </div>
+          <div class="mb-3">
+            <label for="itemImage-shirt" class="form-label">Item Image</label>
+            <input type="file" name="image" id="itemImage-shirt" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit Item</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

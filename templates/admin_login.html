@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Wavy - Login{% endblock %}
+{% block title %}Wavy - Admin Login{% endblock %}
 {% block stylesheets%}
 <style>
     svg{
@@ -38,12 +38,12 @@
   {% endif %}
 {% endwith %}
   
-  <h1>Wavy - Login</h1>
-    <form class="border rounded p-3" style="max-width: 400px;" action="/login" method="post">
+  <h1>Wavy - Admin Login</h1>
+    <form class="border rounded p-3" style="max-width: 400px;" action="/admin-login" method="post">
       <div class="mb-3">
-        <label for="exampleInputEmail1" class="form-label">Email address</label>
-        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email" name="email">
-        <div id="emailHelp" class="form-text">The email you used to sign up</div>
+        <label for="exampleInputEmail1" class="form-label">Username</label>
+        <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Username" name="username">
+        <div id="emailHelp" class="form-text">Please input the admin username</div>
       </div>
       <div class="mb-3">
         <label for="exampleInputPassword1" class="form-label">Password</label>
