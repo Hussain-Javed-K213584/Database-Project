@@ -9,7 +9,7 @@ from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = 'super secret!'
-app.config['UPLOAD_FOLDER'] = 'images'
+app.config['UPLOAD_FOLDER'] = 'static/images'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg'}
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///wavy.db'
 login_manager = LoginManager(app)
@@ -29,10 +29,10 @@ class Accessories(db.Model):
     __tablename__ = 'Accessories'
 
     id = db.Column(db.Integer, primary_key=True)
-    Name = db.Column(db.String(100), nullable=False, unique=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
     price = db.Column(db.Integer, nullable=False)
-    Qty = db.Column(db.Integer, nullable=False)
-    Type = db.Column(db.String(100), nullable=False)
+    qty = db.Column(db.Integer, nullable=False)
+    type = db.Column(db.String(100), nullable=False)
     Product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
     product = db.relationship('ProductTable', backref='accessories')
     image_path = db.Column(db.String(255))
@@ -49,12 +49,12 @@ class Admin(db.Model, UserMixin):
 class Jeans(db.Model):
     __tablename__ = 'Jeans'
 
-    Gender = db.Column(db.String(1), nullable=False)
-    Type = db.Column(db.String(50), nullable=False)
+    gender = db.Column(db.String(1), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
     name = db.Column(db.String(100), nullable=False, unique=True)
     price = db.Column(db.Integer, nullable=False)
     id = db.Column(db.Integer, primary_key=True)
-    Qty = db.Column(db.Integer, nullable=False)
+    qty = db.Column(db.Integer, nullable=False)
     Product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
     product = db.relationship('ProductTable', backref='jeans')
     image_path = db.Column(db.String(255))
@@ -76,8 +76,8 @@ class Shoes(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
     type = db.Column(db.String(50), nullable=False)
     gender = db.Column(db.String(1), nullable=False)
-    Qty = db.Column(db.Integer, nullable=False)
-    Price = db.Column(db.Integer, nullable=False)
+    qty = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Integer, nullable=False)
     Product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
     product = db.relationship('ProductTable', backref='shoes')
     image_path = db.Column(db.String(255))
@@ -87,10 +87,10 @@ class Tshirts(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
-    Qty = db.Column(db.Integer, nullable=False)
+    qty = db.Column(db.Integer, nullable=False)
     type = db.Column(db.String(50), nullable=False)
-    Price = db.Column(db.Integer, nullable=False)
-    Gender = db.Column(db.String(1), nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+    gender = db.Column(db.String(1), nullable=False)
     Product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
     product = db.relationship('ProductTable', backref='tshirts')
     image_path = db.Column(db.String(255))
@@ -142,7 +142,11 @@ def load_user(user_id):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    accessories = Accessories.query.all()
+    shirts = Tshirts.query.all()
+    for sh in shirts:
+        print(sh.name)
+    return render_template('index.html', item_list=[accessories, shirts])
 
 @app.route('/admin-panel')
 @login_required
@@ -182,7 +186,7 @@ def accessories_form():
             db.session.add(product)
             db.session.commit()
             product = ProductTable.query.filter_by(name=name).first()
-            accessory = Accessories(Name=name, price=price, Qty=qty, Type=type, 
+            accessory = Accessories(name=name, price=price, qty=qty, type=type, 
                                     image_path=file_path, Product_table_id=product.id)
             db.session.add(accessory)
             db.session.commit()
@@ -208,7 +212,7 @@ def jeans_form():
             db.session.add(product)
             db.session.commit()
             product = ProductTable.query.filter_by(name=name).first()
-            jeans = Jeans(name=name, price=price, Qty=qty, Type=type, Gender=gender, 
+            jeans = Jeans(name=name, price=price, qty=qty, type=type, gender=gender, 
                                     image_path=file_path, Product_table_id=product.id)
             db.session.add(jeans)
             db.session.commit()
@@ -234,7 +238,7 @@ def shoes_form():
             db.session.add(product)
             db.session.commit()
             product = ProductTable.query.filter_by(name=name).first()
-            shoes = Shoes(name=name, Price=price, Qty=qty, type=type, gender=gender, 
+            shoes = Shoes(name=name, price=price, qty=qty, type=type, gender=gender, 
                                     image_path=file_path, Product_table_id=product.id)
             db.session.add(shoes)
             db.session.commit()
@@ -260,7 +264,7 @@ def fill_acc_form():
             db.session.add(product)
             db.session.commit()
             product = ProductTable.query.filter_by(name=name).first()
-            shirts = Tshirts(name=name, Price=price, Qty=qty, type=type, Gender=gender, 
+            shirts = Tshirts(name=name, price=price, qty=qty, type=type, gender=gender, 
                                     image_path=file_path, Product_table_id=product.id)
             db.session.add(shirts)
             db.session.commit()
