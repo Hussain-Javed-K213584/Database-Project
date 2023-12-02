@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Wavy - Login{% endblock %}
+{% block stylesheets %}
+
+{% endblock %}
+<style>
+    /* body {
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-form-container {
+            width: 300px;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-form {
+            margin-top: 20px;
+        } */
+</style>
+{% block body %}
+<div class="container d-flex justify-content-center flex-column gap-3 align-items-center" style="min-height: 100vh;">
+    <h1>Wavy - Login</h1>
+    <form class="border rounded p-3" style="max-width: 400px;" action="/login" method="post">
+      <div class="mb-3">
+        <label for="exampleInputEmail1" class="form-label">Email address</label>
+        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+        <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+      </div>
+      <div class="mb-3">
+        <label for="exampleInputPassword1" class="form-label">Password</label>
+        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+      </div>
+      <button type="submit" class="btn btn-primary w-100">Submit</button>
+    </form>
+  </div>  
+{% endblock %}
