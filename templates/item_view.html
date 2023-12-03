@@ -1,1 +1,23 @@
 {% extends 'index.html' %}
+
+{% block view_items %}
+<div class="container">
+    <div class="row">
+      <div class="col-md-6">
+        <img src="../{{item[0].image_path}}" alt="Product Image" class="img-fluid">
+      </div>
+      <div class="col-md-6">
+        <h2>{{item[0].name}}</h2>
+        <p>{{item[0].price}} Rs</p>
+        <form>
+          <div class="form-group mb-3">
+            <label for="quantity">Quantity:</label>
+            <input type="number" class="form-control" id="quantity" name="quantity" min="1" max="10" value="1">
+          </div>
+          <button type="submit" class="btn btn-primary">Buy Now</button>
+          <button type="submit" class="btn btn-secondary">Add to Cart</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endblock %}

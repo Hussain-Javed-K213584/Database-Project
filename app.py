@@ -4,7 +4,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 from helper import generate_product_code, upload_file
-
 app = Flask(__name__)
 app.secret_key = 'super secret!'
 app.config['UPLOAD_FOLDER'] = 'static/images'
@@ -258,26 +257,17 @@ def fill_acc_form():
         return render_template('admin_panel.html', item='shirts')
     return redirect('/')
 
-@app.route('/view-item', methods=['GET', 'POST'])
-def product_view():
-    return render_template('item_view.html')
-# @app.route('/admin-login', methods=['POST', 'GET'])
-# def admin_login():
-#     if request.method == 'POST':
-#         username = request.form.get('username')
-#         password = request.form.get('password')
-#         print(bcrypt.generate_password_hash(password).decode())
-#         admin = Admin.query.filter_by(username=username).first()
-#         if admin is None:
-#             flash("Incorrect Credentials!")
-#             return redirect('/login')
-#         if bcrypt.check_password_hash(admin.Password,
-#                                       password) == False:
-#             flash("Incorrect Credentials!")
-#             return redirect('login')
-#         print(current_user)
-#         return redirect('/admin-panel')
-#     return render_template('admin_login.html')
+@app.route('/view-item/<item_code>', methods=['GET', 'POST'])
+def product_view(item_code):
+    result = db.session.execute(
+        db.select(Accessories)
+        .where(Accessories.prod_code==item_code)
+    )
+    result_row = []
+    for chunk in result:
+        for row in chunk:
+            result_row.append(row)
+    return render_template('item_view.html', item=result_row)
 
 @app.route('/signup', methods=['POST', 'GET'])
 def sign_up():
