@@ -3,9 +3,7 @@ from flask_login import login_required, logout_user, current_user ,UserMixin, Lo
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.utils import secure_filename
-import os
-from functools import wraps
+from helper import generate_product_code, upload_file
 
 app = Flask(__name__)
 app.secret_key = 'super secret!'
@@ -33,6 +31,7 @@ class Accessories(db.Model):
     price = db.Column(db.Integer, nullable=False)
     qty = db.Column(db.Integer, nullable=False)
     type = db.Column(db.String(100), nullable=False)
+    prod_code = db.Column(db.String(50), nullable=False, unique=True)
     Product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
     product = db.relationship('ProductTable', backref='accessories')
     image_path = db.Column(db.String(255))
@@ -55,6 +54,7 @@ class Jeans(db.Model):
     price = db.Column(db.Integer, nullable=False)
     id = db.Column(db.Integer, primary_key=True)
     qty = db.Column(db.Integer, nullable=False)
+    prod_code = db.Column(db.String(50), nullable=False, unique=True)
     Product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
     product = db.relationship('ProductTable', backref='jeans')
     image_path = db.Column(db.String(255))
@@ -78,6 +78,7 @@ class Shoes(db.Model):
     gender = db.Column(db.String(1), nullable=False)
     qty = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Integer, nullable=False)
+    prod_code = db.Column(db.String(50), nullable=False, unique=True)
     Product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
     product = db.relationship('ProductTable', backref='shoes')
     image_path = db.Column(db.String(255))
@@ -91,6 +92,7 @@ class Tshirts(db.Model):
     type = db.Column(db.String(50), nullable=False)
     price = db.Column(db.Integer, nullable=False)
     gender = db.Column(db.String(1), nullable=False)
+    prod_code = db.Column(db.String(50), nullable=False, unique=True)
     Product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
     product = db.relationship('ProductTable', backref='tshirts')
     image_path = db.Column(db.String(255))
@@ -116,25 +118,6 @@ class OrderDetails(db.Model):
     orders = db.relationship('Orders', backref='order_details')
     Product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
     product = db.relationship('ProductTable', backref='order_details')
-
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
-
-
-def upload_file(file):
-    if file.filename == '':
-        flash('No selected file')
-        return redirect(request.url)
-
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-
-        return file_path
-    else:
-        return False
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -174,7 +157,7 @@ def accessories_form():
     if current_user.id == 1:
         if request.method == 'POST':
             image = request.files['image']
-            file_path = upload_file(image)
+            file_path = upload_file(app, image)
             if not file_path:
                 flash("Error with file upload")
                 return redirect('/admin-panel')
@@ -187,7 +170,8 @@ def accessories_form():
             db.session.commit()
             product = ProductTable.query.filter_by(name=name).first()
             accessory = Accessories(name=name, price=price, qty=qty, type=type, 
-                                    image_path=file_path, Product_table_id=product.id)
+                                    image_path=file_path, Product_table_id=product.id,
+                                    prod_code=generate_product_code('ACC', 7))
             db.session.add(accessory)
             db.session.commit()
         return render_template('admin_panel.html', item='accessories')
@@ -199,7 +183,7 @@ def jeans_form():
     if current_user.id == 1:
         if request.method == 'POST':
             image = request.files['image']
-            file_path = upload_file(image)
+            file_path = upload_file(app, image)
             if not file_path:
                 flash("Error with file upload")
                 return redirect('/admin-panel')
@@ -213,7 +197,8 @@ def jeans_form():
             db.session.commit()
             product = ProductTable.query.filter_by(name=name).first()
             jeans = Jeans(name=name, price=price, qty=qty, type=type, gender=gender, 
-                                    image_path=file_path, Product_table_id=product.id)
+                                    image_path=file_path, Product_table_id=product.id,
+                                    prod_code=generate_product_code('JXE', 7))
             db.session.add(jeans)
             db.session.commit()
         return render_template('admin_panel.html', item='jeans')
@@ -225,7 +210,7 @@ def shoes_form():
     if current_user.id == 1:
         if request.method == 'POST':
             image = request.files['image']
-            file_path = upload_file(image)
+            file_path = upload_file(app, image)
             if not file_path:
                 flash("Error with file upload")
                 return redirect('/admin-panel')
@@ -239,7 +224,8 @@ def shoes_form():
             db.session.commit()
             product = ProductTable.query.filter_by(name=name).first()
             shoes = Shoes(name=name, price=price, qty=qty, type=type, gender=gender, 
-                                    image_path=file_path, Product_table_id=product.id)
+                                    image_path=file_path, Product_table_id=product.id,
+                                    prod_code=generate_product_code('SHO', 7))
             db.session.add(shoes)
             db.session.commit()
         return render_template('admin_panel.html', item='shoes')
@@ -251,7 +237,7 @@ def fill_acc_form():
     if current_user.id == 1:
         if request.method == 'POST':
             image = request.files['image']
-            file_path = upload_file(image)
+            file_path = upload_file(app, image)
             if not file_path:
                 flash("Error with file upload")
                 return redirect('/admin-panel')
@@ -265,11 +251,16 @@ def fill_acc_form():
             db.session.commit()
             product = ProductTable.query.filter_by(name=name).first()
             shirts = Tshirts(name=name, price=price, qty=qty, type=type, gender=gender, 
-                                    image_path=file_path, Product_table_id=product.id)
+                                    image_path=file_path, Product_table_id=product.id,
+                                    prod_code=generate_product_code('SHP', 7))
             db.session.add(shirts)
             db.session.commit()
         return render_template('admin_panel.html', item='shirts')
     return redirect('/')
+
+@app.route('/view-item', methods=['GET', 'POST'])
+def product_view():
+    return render_template('item_view.html')
 # @app.route('/admin-login', methods=['POST', 'GET'])
 # def admin_login():
 #     if request.method == 'POST':

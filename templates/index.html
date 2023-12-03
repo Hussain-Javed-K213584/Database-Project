@@ -146,6 +146,8 @@
 {% endif %}
 {% endwith %}
 
+{% block view_items %}
+
 {% if item_list|length > 0 %}
 {% for db in item_list %}
 {% for attr in db %}
@@ -155,11 +157,12 @@
     <div class="card-body">
       <h5 class="card-title"> {{attr.name}} </h5>
       <p class="card-text"> {{attr.price}}PKR </p>
-      <a href="#" class="btn btn-primary">View</a>
+      <a href="/inventory/{{attr.id}}" class="btn btn-primary">View</a>
     </div>
   </div>
 </div>
 {% endfor %}
 {% endfor %}
 {% endif %}
+{% endblock %}
 {% endblock %}
