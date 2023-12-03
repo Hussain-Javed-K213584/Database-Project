@@ -111,6 +111,8 @@
   </div>
 </nav>
 
+{% block alerts %}
+
 {% with messages = get_flashed_messages() %}
 <!-- Greet user once they have logged in-->
 {% if messages %}
@@ -145,6 +147,7 @@
 </div>
 {% endif %}
 {% endwith %}
+{% endblock %}
 
 {% block view_items %}
 

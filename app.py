@@ -269,6 +269,45 @@ def product_view(item_code):
             result_row.append(row)
     return render_template('item_view.html', item=result_row)
 
+@app.route('/purchase/<item_code>', methods=['POST', 'GET'])
+@login_required
+def purchase_form(item_code):
+    if request.method == 'POST':
+        result = db.session.execute(
+            db.select(Accessories)
+            .where(Accessories.prod_code==item_code)
+        )
+        item_list = []
+        for chunk in result:
+            for row in chunk:
+                item_list.append(row)
+        # Check for button click
+        button_click = request.form['form-button']
+        if button_click == 'buy-now':
+            # Deduct the quanity of the item from the amount the user purchased
+            qty_purchased = int(request.form.get('quantity'))
+            if qty_purchased > item_list[0].qty or qty_purchased <= 0:
+                flash("You cannot order that much!")
+                return redirect(f'/view-item/{item_code}')
+            print(item_code)
+            print("Quantity purchased: ", qty_purchased)
+            # Subtract qty from qty in item database
+            db.session.execute(
+                db.update(Accessories)
+                .where(Accessories.prod_code == item_code)
+                .values(qty=Accessories.qty - qty_purchased)
+            )
+            db.session.commit()
+            print("Update executed")
+        elif button_click == 'add-to-cart':
+            pass
+    return redirect('/orders')
+
+@app.route('/orders')
+@login_required
+def orders_page():
+    return render_template('orders.html')
+
 @app.route('/signup', methods=['POST', 'GET'])
 def sign_up():
     if request.method == 'POST':
