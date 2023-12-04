@@ -111,6 +111,9 @@
   </div>
 </nav>
 
+{% block user_orders %}
+{% endblock %}
+
 {% block alerts %}
 
 {% with messages = get_flashed_messages() %}
@@ -158,10 +161,12 @@
   <div class="card" style="width: 18rem;">
     <img src="{{ attr.image_path }}" class="carg-img-top" height="256px">
     <div class="card-body">
-      <h5 class="card-title"> {{attr.name}} </h5>
-      <p class="card-text"> {{attr.price}}PKR </p>
-      <a href="/view-item/{{attr.prod_code}}" class="btn btn-primary">View</a>
-    </div>
+      <a href="/view-item/{{attr.prod_code}}">
+        <h5 class="card-title"> {{attr.name}} </h5>
+      </a>
+        <p class="card-text"> {{attr.price}}PKR </p>
+        <a href="/view-item/{{attr.prod_code}}" class="btn btn-primary">View</a>
+      </div>
   </div>
 </div>
 {% endfor %}

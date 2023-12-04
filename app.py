@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 from helper import generate_product_code, upload_file
+from datetime import datetime
 app = Flask(__name__)
 app.secret_key = 'super secret!'
 app.config['UPLOAD_FOLDER'] = 'static/images'
@@ -35,15 +36,6 @@ class Accessories(db.Model):
     product = db.relationship('ProductTable', backref='accessories')
     image_path = db.Column(db.String(255))
 
-class Admin(db.Model, UserMixin):
-    __tablename__ = 'Admin'
-
-    id = db.Column(db.Integer, primary_key=True)
-    Password = db.Column(db.String(100), nullable=False)
-    username = db.Column(db.String(100), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    role = db.Column(db.String(10), nullable=False)
-
 class Jeans(db.Model):
     __tablename__ = 'Jeans'
 
@@ -54,7 +46,7 @@ class Jeans(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     qty = db.Column(db.Integer, nullable=False)
     prod_code = db.Column(db.String(50), nullable=False, unique=True)
-    Product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
+    product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
     product = db.relationship('ProductTable', backref='jeans')
     image_path = db.Column(db.String(255))
 
@@ -62,10 +54,12 @@ class Orders(db.Model):
     __tablename__ = 'Orders'
 
     id = db.Column(db.Integer, primary_key=True)
-    Total_price = db.Column(db.Integer, nullable=False)
+    total_price = db.Column(db.Integer, nullable=False)
+    qty_ordered = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String(100), nullable=False)
-    timestamp = db.Column(db.DateTime, nullable=False)
-    Users_id = db.Column(db.Integer, db.ForeignKey('Users.id'), nullable=False)
+    timestamp = db.Column(db.DateTime(timezone=False), nullable=False, default=datetime.now())
+    users_id = db.Column(db.Integer, db.ForeignKey('Users.id'), nullable=False)
+    image_path = image_path = db.Column(db.String(255))
     user = db.relationship('Users', backref='orders')
     
 class Shoes(db.Model):
@@ -78,7 +72,7 @@ class Shoes(db.Model):
     qty = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Integer, nullable=False)
     prod_code = db.Column(db.String(50), nullable=False, unique=True)
-    Product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
+    product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
     product = db.relationship('ProductTable', backref='shoes')
     image_path = db.Column(db.String(255))
 
@@ -105,18 +99,6 @@ class Users(db.Model, UserMixin):
     Name = db.Column(db.String(100), nullable=False)
     location = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(50), nullable=False)
-
-class OrderDetails(db.Model):
-    __tablename__ = 'order_details'
-
-    id = db.Column(db.Integer, primary_key=True)
-    Qty = db.Column(db.Integer, nullable=False)
-    Name = db.Column(db.String(100), nullable=False)
-    Total_p = db.Column(db.Integer, nullable=False)
-    Orders_id = db.Column(db.Integer, db.ForeignKey('Orders.id'), nullable=False)
-    orders = db.relationship('Orders', backref='order_details')
-    Product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
-    product = db.relationship('ProductTable', backref='order_details')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -267,12 +249,15 @@ def product_view(item_code):
     for chunk in result:
         for row in chunk:
             result_row.append(row)
+    if len(result_row) <= 0:
+        return redirect("/")
     return render_template('item_view.html', item=result_row)
 
 @app.route('/purchase/<item_code>', methods=['POST', 'GET'])
 @login_required
 def purchase_form(item_code):
     if request.method == 'POST':
+        # Query the item that the user want to view
         result = db.session.execute(
             db.select(Accessories)
             .where(Accessories.prod_code==item_code)
@@ -299,14 +284,31 @@ def purchase_form(item_code):
             )
             db.session.commit()
             print("Update executed")
+            # Add the product as purchased in orders table
+            order = Orders(total_price=item_list[0].price, qty_ordered=qty_purchased ,name=item_list[0].name,
+                        users_id=current_user.id, image_path=item_list[0].image_path)
+            db.session.add(order)
+            db.session.commit()
+            print("orders updated")
         elif button_click == 'add-to-cart':
             pass
-    return redirect('/orders')
+    return redirect(url_for('orders_page', username=current_user.Name))
 
-@app.route('/orders')
+@app.route('/<username>/orders')
 @login_required
-def orders_page():
-    return render_template('orders.html')
+def orders_page(username):
+    user_id = current_user.id
+    print("curr id ", user_id)
+    # result = db.session.execute(
+    #     db.select(Orders)
+    #     .filter_by(users_id=user_id)
+    # )
+    result = db.session.query(
+        Orders, Users
+    ).filter(
+        Orders.users_id == Users.id
+    ).all()
+    return render_template('orders.html', username=username, orders=result)
 
 @app.route('/signup', methods=['POST', 'GET'])
 def sign_up():
