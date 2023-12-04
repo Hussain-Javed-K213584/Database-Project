@@ -15,12 +15,12 @@
                     <th scope="col">Total</th>
                 </tr>
                 <tbody>
-                    {% for order, customer in orders%}
+                    {% for order in orders%}
                     <tr>
                         <td scope="row">{{order.id}}</td>
                         <td><img width="64px" height="64px" src="../{{order.image_path}}" class="img-thumbnail"> {{order.name}}</td>
                         <td>{{order.qty_ordered}}</td>
-                        <td>{{customer.location}}</td>
+                        <td>{{order.user.location}}</td>
                         <td>{{order.timestamp}}</td>
                         <td>{{order.total_price}} Rs</td>
                     </tr>

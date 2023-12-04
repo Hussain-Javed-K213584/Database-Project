@@ -241,10 +241,26 @@ def fill_acc_form():
 
 @app.route('/view-item/<item_code>', methods=['GET', 'POST'])
 def product_view(item_code):
-    result = db.session.execute(
-        db.select(Accessories)
-        .where(Accessories.prod_code==item_code)
-    )
+    if item_code.startswith('ACC'):
+        result = db.session.execute(
+            db.select(Accessories)
+            .where(Accessories.prod_code==item_code)
+        )
+    elif item_code.startswith('SHP'):
+        result = db.session.execute(
+            db.select(Tshirts)
+            .where(Tshirts.prod_code==item_code)
+        )
+    elif item_code.startswith('SHO'):
+        result = db.session.execute(
+            db.select(Shoes)
+            .where(Shoes.prod_code==item_code)
+        )
+    elif item_code.startswith('JXE'):
+        result = db.session.execute(
+            db.select(Jeans)
+            .where(Jeans.prod_code==item_code)
+        )
     result_row = []
     for chunk in result:
         for row in chunk:
@@ -258,10 +274,27 @@ def product_view(item_code):
 def purchase_form(item_code):
     if request.method == 'POST':
         # Query the item that the user want to view
-        result = db.session.execute(
+        if item_code.startswith('ACC'):
+            result = db.session.execute(
             db.select(Accessories)
             .where(Accessories.prod_code==item_code)
         )
+        elif item_code.startswith('SHP'):
+            result = db.session.execute(
+                db.select(Tshirts)
+                .where(Tshirts.prod_code==item_code)
+            )
+        elif item_code.startswith('SHO'):
+            result = db.session.execute(
+                db.select(Shoes)
+                .where(Shoes.prod_code==item_code)
+            )
+        elif item_code.startswith('JXE'):
+            result = db.session.execute(
+            db.select(Jeans)
+            .where(Jeans.prod_code==item_code)
+        )
+            
         item_list = []
         for chunk in result:
             for row in chunk:
@@ -298,17 +331,19 @@ def purchase_form(item_code):
 @login_required
 def orders_page(username):
     user_id = current_user.id
+    if username != current_user.Name:
+        return redirect(url_for('orders_page', username=current_user.Name))
     print("curr id ", user_id)
-    # result = db.session.execute(
-    #     db.select(Orders)
-    #     .filter_by(users_id=user_id)
-    # )
-    result = db.session.query(
-        Orders, Users
-    ).filter(
-        Orders.users_id == Users.id
-    ).all()
-    return render_template('orders.html', username=username, orders=result)
+    result = (
+        db.session.query(Orders)
+        .join(Users)
+        .filter(Users.id == current_user.id)
+        .all()
+    )
+    result_row = []
+    for row in result:
+        result_row.append(row)
+    return render_template('orders.html', username=username, orders=result_row)
 
 @app.route('/signup', methods=['POST', 'GET'])
 def sign_up():
