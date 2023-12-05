@@ -1,0 +1,18 @@
+{% extends 'index.html' %}
+
+{% block view_items %}
+{% for item in items %}
+<div class="d-inline-flex ps-3 pt-3">
+    <div class="card" style="width: 18rem;">
+      <img src="{{ item.image_path }}" class="carg-img-top" height="256px">
+      <div class="card-body">
+        <a href="/view-item/{{item.prod_code}}">
+          <h5 class="card-title"> {{item.name}} </h5>
+        </a>
+          <p class="card-text"> {{item.price}}PKR </p>
+          <a href="/view-item/{{item.prod_code}}" class="btn btn-primary">View</a>
+        </div>
+    </div>
+  </div>
+{% endfor %}
+{% endblock %}

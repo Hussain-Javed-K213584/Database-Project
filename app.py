@@ -32,7 +32,7 @@ class Accessories(db.Model):
     qty = db.Column(db.Integer, nullable=False)
     type = db.Column(db.String(100), nullable=False)
     prod_code = db.Column(db.String(50), nullable=False, unique=True)
-    Product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
+    product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
     product = db.relationship('ProductTable', backref='accessories')
     image_path = db.Column(db.String(255))
 
@@ -86,7 +86,7 @@ class Tshirts(db.Model):
     price = db.Column(db.Integer, nullable=False)
     gender = db.Column(db.String(1), nullable=False)
     prod_code = db.Column(db.String(50), nullable=False, unique=True)
-    Product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
+    product_table_id = db.Column(db.Integer, db.ForeignKey('Product_table.id'), nullable=False)
     product = db.relationship('ProductTable', backref='tshirts')
     image_path = db.Column(db.String(255))
 
@@ -108,9 +108,11 @@ def load_user(user_id):
 def index():
     accessories = Accessories.query.all()
     shirts = Tshirts.query.all()
+    shoes = Shoes.query.all()
+    jeans = Jeans.query.all()
     for sh in shirts:
         print(sh.name)
-    return render_template('index.html', item_list=[accessories, shirts])
+    return render_template('index.html', item_list=[accessories, shirts, shoes, jeans])
 
 @app.route('/admin-panel')
 @login_required
@@ -151,7 +153,7 @@ def accessories_form():
             db.session.commit()
             product = ProductTable.query.filter_by(name=name).first()
             accessory = Accessories(name=name, price=price, qty=qty, type=type, 
-                                    image_path=file_path, Product_table_id=product.id,
+                                    image_path=file_path, product_table_id=product.id,
                                     prod_code=generate_product_code('ACC', 7))
             db.session.add(accessory)
             db.session.commit()
@@ -178,7 +180,7 @@ def jeans_form():
             db.session.commit()
             product = ProductTable.query.filter_by(name=name).first()
             jeans = Jeans(name=name, price=price, qty=qty, type=type, gender=gender, 
-                                    image_path=file_path, Product_table_id=product.id,
+                                    image_path=file_path, product_table_id=product.id,
                                     prod_code=generate_product_code('JXE', 7))
             db.session.add(jeans)
             db.session.commit()
@@ -205,7 +207,7 @@ def shoes_form():
             db.session.commit()
             product = ProductTable.query.filter_by(name=name).first()
             shoes = Shoes(name=name, price=price, qty=qty, type=type, gender=gender, 
-                                    image_path=file_path, Product_table_id=product.id,
+                                    image_path=file_path, product_table_id=product.id,
                                     prod_code=generate_product_code('SHO', 7))
             db.session.add(shoes)
             db.session.commit()
@@ -232,7 +234,7 @@ def fill_acc_form():
             db.session.commit()
             product = ProductTable.query.filter_by(name=name).first()
             shirts = Tshirts(name=name, price=price, qty=qty, type=type, gender=gender, 
-                                    image_path=file_path, Product_table_id=product.id,
+                                    image_path=file_path, product_table_id=product.id,
                                     prod_code=generate_product_code('SHP', 7))
             db.session.add(shirts)
             db.session.commit()
@@ -392,16 +394,25 @@ def logout():
     flash('Logged out Successfully', 'success')
     return redirect('/')
 
-@app.route('/shirts', methods=['POST', 'GET'])
-def shirts():
-    if request.method == 'POST':
-        pass
-    return render_template('shirts.html')
+@app.route('/view-item-<item_name>')
+def view_item_subset(item_name):
+    if item_name == 'shirts':
+        shirt = Tshirts.query.all()
+        return render_template('item_filter_view.html', items=shirt)
+    elif item_name == 'shoes':
+        shoes = Shoes.query.all()
+        return render_template('item_filter_view.html', items=shoes)
+    elif item_name == 'accessories':
+        access = Accessories.query.all()
+        return render_template('item_filter_view.html', items=access)
+    elif item_name == 'jeans':
+        jeans = Jeans.query.all()
+        return render_template('item_filter_view.html', items=jeans)
+    return redirect('/')
 
-@app.route('/shoes', methods=['POST', 'GET'])
-def shoes():
-    return render_template('shoes.html')
-
+# Once the app starts initialize the database
+# Create tables/database if it is not created
+# This also created connection to database file
 with app.app_context():
     db.init_app(app)
     db.create_all()
