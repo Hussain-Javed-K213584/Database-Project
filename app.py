@@ -24,6 +24,8 @@ class ProductTable(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     price = db.Column(db.Integer, nullable=False)
+    prod_code = db.Column(db.Integer, nullable=False, unique=True)
+    image_path = db.Column(db.String(255))
 
 class Accessories(db.Model):
     __tablename__ = 'Accessories'
@@ -212,13 +214,14 @@ def accessories_form():
         qty = request.form.get('qty')
         price = request.form.get('price')
         type = request.form.get('type')
-        product = ProductTable(name=name, price=price)
+        prod_code = generate_product_code('ACC', 7)
+        product = ProductTable(name=name, price=price, prod_code=prod_code
+                               ,image_path=file_path)
         db.session.add(product)
         db.session.commit()
-        product = ProductTable.query.filter_by(name=name).first()
         accessory = Accessories(name=name, price=price, qty=qty, type=type, 
                                 image_path=file_path, product_table_id=product.id,
-                                prod_code=generate_product_code('ACC', 7))
+                                prod_code=prod_code)
         db.session.add(accessory)
         db.session.commit()
     return render_template('admin_panel.html', item='accessories')
@@ -238,13 +241,15 @@ def jeans_form():
         price = request.form.get('price')
         type = request.form.get('type')
         gender = request.form.get('gender')
-        product = ProductTable(name=name, price=price)
+        prod_code = generate_product_code('JXE', 7)
+        product = ProductTable(name=name, price=price, prod_code=prod_code,
+                               image_path=file_path)
         db.session.add(product)
         db.session.commit()
         product = ProductTable.query.filter_by(name=name).first()
         jeans = Jeans(name=name, price=price, qty=qty, type=type, gender=gender, 
                                 image_path=file_path, product_table_id=product.id,
-                                prod_code=generate_product_code('JXE', 7))
+                                prod_code=prod_code)
         db.session.add(jeans)
         db.session.commit()
     return render_template('admin_panel.html', item='jeans')
@@ -264,13 +269,15 @@ def shoes_form():
         price = request.form.get('price')
         type = request.form.get('type')
         gender = request.form.get('gender')
-        product = ProductTable(name=name, price=price)
+        prod_code = generate_product_code('SHO', 7)
+        product = ProductTable(name=name, price=price,
+                               image_path=file_path, prod_code=prod_code)
         db.session.add(product)
         db.session.commit()
         product = ProductTable.query.filter_by(name=name).first()
         shoes = Shoes(name=name, price=price, qty=qty, type=type, gender=gender, 
                                 image_path=file_path, product_table_id=product.id,
-                                prod_code=generate_product_code('SHO', 7))
+                                prod_code=prod_code)
         db.session.add(shoes)
         db.session.commit()
     return render_template('admin_panel.html', item='shoes')
@@ -290,13 +297,15 @@ def fill_acc_form():
         price = request.form.get('price')
         type = request.form.get('type')
         gender = request.form.get('gender')
-        product = ProductTable(name=name, price=price)
+        prod_code = generate_product_code('SHP', 7)
+        product = ProductTable(name=name, price=price, image_path=file_path,
+                               prod_code=prod_code)
         db.session.add(product)
         db.session.commit()
         product = ProductTable.query.filter_by(name=name).first()
         shirts = Tshirts(name=name, price=price, qty=qty, type=type, gender=gender, 
                                 image_path=file_path, product_table_id=product.id,
-                                prod_code=generate_product_code('SHP', 7))
+                                prod_code=prod_code)
         db.session.add(shirts)
         db.session.commit()
     return render_template('admin_panel.html', item='shirts')
@@ -389,6 +398,24 @@ def purchase_form(item_code):
             pass
     return redirect(url_for('orders_page', username=current_user.Name))
 
+from flask import jsonify
+# The route used for searching items
+@app.route('/search', methods=['POST'])
+def search():
+    search_query = request.form.get('search_query')
+    like_statement = '%{}%'.format(search_query)
+    item_name = ProductTable.query.filter(ProductTable.name.like(like_statement)).all()
+    print(item_name)
+    result = []
+    for item in item_name:
+        result.append({
+            'name': item.name,
+            'price': item.price,
+            'product_code': item.prod_code,
+            'image_path': item.image_path
+        })
+    return jsonify(result)
+# Once user purchases an item, they can view their oder history from this route
 @app.route('/<username>/orders')
 @login_required
 def orders_page(username):

@@ -60,6 +60,9 @@
       <button type="submit" name="admin-button" value="del-item-btn" id="delete-btn" class="btn btn-danger mt-3">Delete Items</button>
     </form>
     {% if item == 'accessories' %}
+    <div class="container mt-3 mb-3">
+      <h1>Accessories Add Form</h1>
+    </div>
         <form action="/accessories-form" method="post" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="itemName-acc" class="form-label">Item Name</label>
@@ -87,6 +90,9 @@
               <button type="submit" class="btn btn-primary">Submit Item</button>
         </form>
     {% elif item == 'jeans' %}
+    <div class="container mt-3 mb-3">
+      <h1>Jeans Add Form</h1>
+    </div>
     <form action="/jeans-form" method="post" enctype="multipart/form-data">
         <div class="mb-3">
             <label for="itemName-j" class="form-label">Item Name</label>
@@ -119,6 +125,9 @@
           <button type="submit" class="btn btn-primary">Submit Item</button>
     </form>
     {% elif item == 'shoes' %}
+    <div class="container mt-3 mb-3">
+      <h1>Shoes Add Form</h1>
+    </div>
     <form action="/shoes-form" method="post" enctype="multipart/form-data">
         <div class="mb-3">
             <label for="itemName-shoe" class="form-label">Item Name</label>
@@ -151,6 +160,9 @@
           <button type="submit" class="btn btn-primary">Submit Item</button>
     </form>
     {% elif item == 'shirts' %}
+    <div class="container mt-3 mb-3">
+      <h1>Shirts Add Form</h1>
+    </div>
     <form action="/shirt-form" method="post" enctype="multipart/form-data">
         <div class="mb-3">
             <label for="itemName-shirt" class="form-label">Item Name</label>
