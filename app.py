@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from helper import generate_product_code, upload_file
 from datetime import datetime
 from functools import wraps
+import re
 
 app = Flask(__name__)
 app.secret_key = 'super secret!'
@@ -135,10 +136,68 @@ def index():
 def admin_panel():
     return render_template('/admin_panel.html')
 
-@app.route('/settings')
+@app.route('/settings', methods=["GET", 'POST'])
 @login_required
 def settings():
-    return render_template('user_settings.html')
+    if request.method == 'POST':
+        new_name = request.form.get('name').strip()
+        old_password = request.form.get('old-password')
+        new_password = request.form.get('new-password')
+        conf_password = request.form.get('conf-password')
+        new_address = request.form.get('address').strip()
+        new_email = request.form.get('email').strip()
+        print(new_name)
+        # Use a if-elif statements to see what thing to modify
+        if new_name != current_user.Name and new_name != "":
+            db.session.execute(
+                db.update(Users)
+                .where(Users.id == current_user.id)
+                .values(
+                    Name=new_name
+                )
+            )
+            db.session.commit()
+        if new_email != "":
+            regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
+            if re.fullmatch(regex, new_email):
+                db.session.execute(
+                    db.update(Users)
+                    .where(Users.id == current_user.id)
+                    .values(
+                        email=new_email
+                    )
+                )
+            else:
+                flash("Provide a valid email format!", "error")
+                return redirect('/settings')
+        if new_address != "" and new_address != current_user.location:
+            db.session.execute(
+                db.session.execute(
+                    db.update(Users)
+                    .where(Users.id == current_user.id)
+                    .values(
+                        location=new_address
+                    )
+                )
+            )
+        if old_password != "" and \
+            bcrypt.check_password_hash(current_user.password, old_password):
+            if new_password == conf_password:
+                new_pass_hash = bcrypt.generate_password_hash(new_password)
+                db.session.execute(
+                    db.update(Users)
+                    .where(Users.id == current_user.id)
+                    .values(
+                        password=new_pass_hash
+                    )
+                )
+            else:
+                flash("New and confirm passwords do not match!", "error")
+                return redirect('/settings')
+        # else:
+        #     flash("Incorrect password entered!", "error")
+        #     return redirect('/settings')
+    return render_template('user_settings.html', name=current_user.Name)
     
 @app.route('/delete/<product_code>', methods=['GET', 'POST'])
 @admin_only
