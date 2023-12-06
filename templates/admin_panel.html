@@ -6,7 +6,18 @@
 {% endblock %}
 {% block body %}
 <div class="container">
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in  messages %}
+      <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <strong>{{ message }}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
     <h1>Wavy Admin Panel</h1>
+    {% block item_form %}
     <form action="/item-form" method="post">
         <div class="mb-3">
             <label for="item-select" class="form-label">Select an item to add:</label>
@@ -16,8 +27,19 @@
                 <option value="shoes">Shoes</option>
                 <option value="shirts">Shirts</option>
             </select>
-            <button type='submit' id="select-btn" class="btn btn-primary mt-3">Add Item</button>
+            <button type='submit' name="admin-button" value="add-item-btn" id="select-btn" class="btn btn-primary mt-3">Add Item</button>
         </div>
+    </form>
+    <form action="/admin-delete" method="post">
+      <div class="mb-3">
+        <label for="item-select" class="form-label">Select an item type to delete:</label>
+        <select class="form-select" id="item-select" name="item-select">
+            <option value="accessories">Accessories</option>
+            <option value="jeans">Jeans</option>
+            <option value="shoes">Shoes</option>
+            <option value="shirts">Shirts</option>
+        </select>
+      <button type="submit" name="admin-button" value="del-item-btn" id="delete-btn" class="btn btn-danger mt-3">Delete Items</button>
     </form>
     {% if item == 'accessories' %}
         <form action="/accessories-form" method="post" enctype="multipart/form-data">
@@ -143,5 +165,6 @@
           <button type="submit" class="btn btn-primary">Submit Item</button>
     </form>
     {% endif %}
+    {% endblock %}
 </div>
 {% endblock %}

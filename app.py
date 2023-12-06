@@ -1,10 +1,12 @@
-from flask import Flask, abort, request, render_template, session, flash, redirect,url_for
+from flask import Flask, g,  abort, request, render_template, session, flash, redirect,url_for
 from flask_login import login_required, logout_user, current_user ,UserMixin, LoginManager, login_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 from helper import generate_product_code, upload_file
 from datetime import datetime
+from functools import wraps
+
 app = Flask(__name__)
 app.secret_key = 'super secret!'
 app.config['UPLOAD_FOLDER'] = 'static/images'
@@ -100,6 +102,16 @@ class Users(db.Model, UserMixin):
     location = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(50), nullable=False)
 
+def admin_only(f):
+    @wraps(f)
+    def decorated_fun(*args, **kwargs):
+        if current_user is None or current_user.id != 1:
+            print(current_user.id)
+            flash("404 - Does not exists")
+            return redirect('/')
+        return f(*args, **kwargs)
+    return decorated_fun 
+
 @login_manager.user_loader
 def load_user(user_id):
     return Users.query.get(int(user_id))
@@ -115,131 +127,174 @@ def index():
     return render_template('index.html', item_list=[accessories, shirts, shoes, jeans])
 
 @app.route('/admin-panel')
+@admin_only
 @login_required
 def admin_panel():
-    id = current_user.id
-    if id == 1:
-        return render_template('admin_panel.html')
-    else:
-        flash("You are not the admin")
-        return redirect('/login')
+    return render_template('/admin_panel.html')
+    
+@app.route('/delete/<product_code>', methods=['GET', 'POST'])
+@admin_only
+@login_required
+def delete_item(product_code):
+    if request.method == "POST":
+        if product_code.startswith('ACC'):
+            item = db.session.execute(db.select(Accessories).filter_by(prod_code=product_code)).scalar_one()
+            db.session.delete(item)
+            db.session.commit()
+            flash("Item deleted")
+            return redirect('admin-delete')
+        elif product_code.startswith('JXE'):
+            item = db.session.execute(db.select(Jeans).filter_by(prod_code=product_code)).scalar_one()
+            db.session.delete(item)
+            db.session.commit()
+            flash("Item deleted")
+            return redirect('admin-delete')
+        elif product_code.startswith('SHO'):
+            item = db.session.execute(db.select(Shoes).filter_by(prod_code=product_code)).scalar_one()
+            db.session.delete(item)
+            db.session.commit()
+            flash("Item deleted")
+            return redirect('admin-delete')
+        elif product_code.startswith('SHP'):
+            item = db.session.execute(db.select(Tshirts).filter_by(prod_code=product_code)).scalar_one()
+            db.session.delete(item)
+            db.session.commit()
+            flash("Item deleted")
+            return redirect('admin-delete')
+    return redirect('/admin-panel')
+# This route is used for deleting stock by admin
+@app.route('/admin-delete', methods=['GET', 'POST'])
+@admin_only
+@login_required
+def admin_panel_delete():
+    if request.method == 'POST':
+        item = request.form.get('item-select')
+        if item == 'accessories':
+            # Run SQL query to get all accessories
+            accessories = Accessories.query.all()   
+            print(accessories)
+            return render_template('admin_delete.html', item_name=item, query_result=accessories)
+        elif item == 'shirts':
+            shirt = Tshirts.query.all()
+            return render_template('admin_delete.html', item_name=item, query_result=shirt)
+        elif item == 'shoes':
+            shoes = Tshirts.query.all()
+            return render_template('admin_delete.html', item_name=item, query_result=shoes)
+        elif item == 'jeans':
+            jeans = Jeans.query.all()
+            return render_template('admin_delete.html', item_name=item, query_result=jeans)
+    return redirect('/')
 
 @app.route('/item-form', methods=['GET', 'POST'])
+@admin_only
 @login_required
 def generate_form():
-    if current_user.id == 1:
-        if request.method == 'POST':
-            print(request.form['item-select'])
-            item = request.form['item-select']
-        return render_template('admin_panel.html', item=item)
-    return redirect('/')
+    if request.method == 'POST':
+        item = request.form['item-select']
+    return render_template('admin_panel.html', item=item)
 
 @app.route('/accessories-form', methods=['GET', 'POST'])
+@admin_only
 @login_required
 def accessories_form():
-    if current_user.id == 1:
-        if request.method == 'POST':
-            image = request.files['image']
-            file_path = upload_file(app, image)
-            if not file_path:
-                flash("Error with file upload")
-                return redirect('/admin-panel')
-            name = request.form.get('name')
-            qty = request.form.get('qty')
-            price = request.form.get('price')
-            type = request.form.get('type')
-            product = ProductTable(name=name, price=price)
-            db.session.add(product)
-            db.session.commit()
-            product = ProductTable.query.filter_by(name=name).first()
-            accessory = Accessories(name=name, price=price, qty=qty, type=type, 
-                                    image_path=file_path, product_table_id=product.id,
-                                    prod_code=generate_product_code('ACC', 7))
-            db.session.add(accessory)
-            db.session.commit()
-        return render_template('admin_panel.html', item='accessories')
-    return redirect('/')
+    if request.method == 'POST':
+        image = request.files['image']
+        file_path = upload_file(app, image)
+        if not file_path:
+            flash("Error with file upload")
+            return redirect('/admin-panel')
+        name = request.form.get('name')
+        qty = request.form.get('qty')
+        price = request.form.get('price')
+        type = request.form.get('type')
+        product = ProductTable(name=name, price=price)
+        db.session.add(product)
+        db.session.commit()
+        product = ProductTable.query.filter_by(name=name).first()
+        accessory = Accessories(name=name, price=price, qty=qty, type=type, 
+                                image_path=file_path, product_table_id=product.id,
+                                prod_code=generate_product_code('ACC', 7))
+        db.session.add(accessory)
+        db.session.commit()
+    return render_template('admin_panel.html', item='accessories')
 
 @app.route('/jeans-form', methods=['GET', 'POST'])
+@admin_only
 @login_required
 def jeans_form():
-    if current_user.id == 1:
-        if request.method == 'POST':
-            image = request.files['image']
-            file_path = upload_file(app, image)
-            if not file_path:
-                flash("Error with file upload")
-                return redirect('/admin-panel')
-            name = request.form.get('name')
-            qty = request.form.get('qty')
-            price = request.form.get('price')
-            type = request.form.get('type')
-            gender = request.form.get('gender')
-            product = ProductTable(name=name, price=price)
-            db.session.add(product)
-            db.session.commit()
-            product = ProductTable.query.filter_by(name=name).first()
-            jeans = Jeans(name=name, price=price, qty=qty, type=type, gender=gender, 
-                                    image_path=file_path, product_table_id=product.id,
-                                    prod_code=generate_product_code('JXE', 7))
-            db.session.add(jeans)
-            db.session.commit()
-        return render_template('admin_panel.html', item='jeans')
-    return redirect('/')
+    if request.method == 'POST':
+        image = request.files['image']
+        file_path = upload_file(app, image)
+        if not file_path:
+            flash("Error with file upload")
+            return redirect('/admin-panel')
+        name = request.form.get('name')
+        qty = request.form.get('qty')
+        price = request.form.get('price')
+        type = request.form.get('type')
+        gender = request.form.get('gender')
+        product = ProductTable(name=name, price=price)
+        db.session.add(product)
+        db.session.commit()
+        product = ProductTable.query.filter_by(name=name).first()
+        jeans = Jeans(name=name, price=price, qty=qty, type=type, gender=gender, 
+                                image_path=file_path, product_table_id=product.id,
+                                prod_code=generate_product_code('JXE', 7))
+        db.session.add(jeans)
+        db.session.commit()
+    return render_template('admin_panel.html', item='jeans')
 
 @app.route('/shoes-form', methods=['GET', 'POST'])
+@admin_only
 @login_required
 def shoes_form():
-    if current_user.id == 1:
-        if request.method == 'POST':
-            image = request.files['image']
-            file_path = upload_file(app, image)
-            if not file_path:
-                flash("Error with file upload")
-                return redirect('/admin-panel')
-            name = request.form.get('name')
-            qty = request.form.get('qty')
-            price = request.form.get('price')
-            type = request.form.get('type')
-            gender = request.form.get('gender')
-            product = ProductTable(name=name, price=price)
-            db.session.add(product)
-            db.session.commit()
-            product = ProductTable.query.filter_by(name=name).first()
-            shoes = Shoes(name=name, price=price, qty=qty, type=type, gender=gender, 
-                                    image_path=file_path, product_table_id=product.id,
-                                    prod_code=generate_product_code('SHO', 7))
-            db.session.add(shoes)
-            db.session.commit()
-        return render_template('admin_panel.html', item='shoes')
-    return redirect('/')
+    if request.method == 'POST':
+        image = request.files['image']
+        file_path = upload_file(app, image)
+        if not file_path:
+            flash("Error with file upload")
+            return redirect('/admin-panel')
+        name = request.form.get('name')
+        qty = request.form.get('qty')
+        price = request.form.get('price')
+        type = request.form.get('type')
+        gender = request.form.get('gender')
+        product = ProductTable(name=name, price=price)
+        db.session.add(product)
+        db.session.commit()
+        product = ProductTable.query.filter_by(name=name).first()
+        shoes = Shoes(name=name, price=price, qty=qty, type=type, gender=gender, 
+                                image_path=file_path, product_table_id=product.id,
+                                prod_code=generate_product_code('SHO', 7))
+        db.session.add(shoes)
+        db.session.commit()
+    return render_template('admin_panel.html', item='shoes')
 
 @app.route('/shirt-form', methods=['GET', 'POST'])
+@admin_only
 @login_required
 def fill_acc_form():
-    if current_user.id == 1:
-        if request.method == 'POST':
-            image = request.files['image']
-            file_path = upload_file(app, image)
-            if not file_path:
-                flash("Error with file upload")
-                return redirect('/admin-panel')
-            name = request.form.get('name')
-            qty = request.form.get('qty')
-            price = request.form.get('price')
-            type = request.form.get('type')
-            gender = request.form.get('gender')
-            product = ProductTable(name=name, price=price)
-            db.session.add(product)
-            db.session.commit()
-            product = ProductTable.query.filter_by(name=name).first()
-            shirts = Tshirts(name=name, price=price, qty=qty, type=type, gender=gender, 
-                                    image_path=file_path, product_table_id=product.id,
-                                    prod_code=generate_product_code('SHP', 7))
-            db.session.add(shirts)
-            db.session.commit()
-        return render_template('admin_panel.html', item='shirts')
-    return redirect('/')
+    if request.method == 'POST':
+        image = request.files['image']
+        file_path = upload_file(app, image)
+        if not file_path:
+            flash("Error with file upload")
+            return redirect('/admin-panel')
+        name = request.form.get('name')
+        qty = request.form.get('qty')
+        price = request.form.get('price')
+        type = request.form.get('type')
+        gender = request.form.get('gender')
+        product = ProductTable(name=name, price=price)
+        db.session.add(product)
+        db.session.commit()
+        product = ProductTable.query.filter_by(name=name).first()
+        shirts = Tshirts(name=name, price=price, qty=qty, type=type, gender=gender, 
+                                image_path=file_path, product_table_id=product.id,
+                                prod_code=generate_product_code('SHP', 7))
+        db.session.add(shirts)
+        db.session.commit()
+    return render_template('admin_panel.html', item='shirts')
 
 @app.route('/view-item/<item_code>', methods=['GET', 'POST'])
 def product_view(item_code):
