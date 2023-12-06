@@ -137,6 +137,15 @@
 {% block user_orders %}
 {% endblock %}
 
+{% block user_settings_form %}
+{% endblock %}
+
+{% block cover_pic %}
+<div class="d-flex">
+  <img src="{{url_for('static', filename='cover/wavy-cover-image.png')}}" class="img-fluid w-100" alt="cover image" style="max-height: 700px;">
+</div>
+{% endblock%}
+
 {% block alerts %}
 
 {% with messages = get_flashed_messages() %}

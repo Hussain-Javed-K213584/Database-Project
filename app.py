@@ -120,13 +120,14 @@ def load_user(user_id):
 
 @app.route('/')
 def index():
+    base_url = request.url_root
     accessories = Accessories.query.all()
     shirts = Tshirts.query.all()
     shoes = Shoes.query.all()
     jeans = Jeans.query.all()
     for sh in shirts:
         print(sh.name)
-    return render_template('index.html', item_list=[accessories, shirts, shoes, jeans])
+    return render_template('index.html', item_list=[accessories, shirts, shoes, jeans], base_url=base_url)
 
 @app.route('/admin-panel')
 @admin_only
@@ -338,7 +339,7 @@ def product_view(item_code):
             result_row.append(row)
     if len(result_row) <= 0:
         return redirect("/")
-    return render_template('item_view.html', item=result_row)
+    return render_template('item_view.html', item=result_row, base_url=request.url_root)
 
 @app.route('/purchase/<item_code>', methods=['POST', 'GET'])
 @login_required
@@ -405,7 +406,6 @@ def search():
     search_query = request.form.get('search_query')
     like_statement = '%{}%'.format(search_query)
     item_name = ProductTable.query.filter(ProductTable.name.like(like_statement)).all()
-    print(item_name)
     result = []
     for item in item_name:
         result.append({
@@ -432,7 +432,7 @@ def orders_page(username):
     result_row = []
     for row in result:
         result_row.append(row)
-    return render_template('orders.html', username=username, orders=result_row)
+    return render_template('orders.html', username=username, orders=result_row , base_url=request.url_root)
 
 @app.route('/signup', methods=['POST', 'GET'])
 def sign_up():
@@ -485,16 +485,16 @@ def logout():
 def view_item_subset(item_name):
     if item_name == 'shirts':
         shirt = Tshirts.query.all()
-        return render_template('item_filter_view.html', items=shirt)
+        return render_template('item_filter_view.html', items=shirt, base_url=request.url_root)
     elif item_name == 'shoes':
         shoes = Shoes.query.all()
-        return render_template('item_filter_view.html', items=shoes)
+        return render_template('item_filter_view.html', items=shoes, base_url=request.url_root)
     elif item_name == 'accessories':
         access = Accessories.query.all()
-        return render_template('item_filter_view.html', items=access)
+        return render_template('item_filter_view.html', items=access, base_url=request.url_root)
     elif item_name == 'jeans':
         jeans = Jeans.query.all()
-        return render_template('item_filter_view.html', items=jeans)
+        return render_template('item_filter_view.html', items=jeans, base_url=request.url_root)
     return redirect('/')
 
 # Once the app starts initialize the database

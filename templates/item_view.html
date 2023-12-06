@@ -1,8 +1,10 @@
 {% extends 'index.html' %}
 
+{% block cover_pic %}{% endblock %}
+
 {% block view_items %}
 <div class="container">
-    <div class="row">
+    <div class="row mt-5">
       <div class="col-md-6">
         <img src="../{{item[0].image_path}}" alt="Product Image" class="img-fluid">
       </div>

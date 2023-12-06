@@ -1,7 +1,9 @@
 {% extends 'index.html' %}
 
+{% block cover_pic %}{% endblock %}
+
 {% block user_orders %}
-<div class="container text-center">
+<div class="container text-center mt-5">
     <h1>{{ username }}'s Order History</h1>
     {% if orders|length > 0 %}
         <table class="table table-hover">

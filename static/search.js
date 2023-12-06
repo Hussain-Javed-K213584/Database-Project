@@ -1,5 +1,6 @@
     // Add AJAX script for real-time search
     $(document).ready(function() {
+        var base_url = $('body').data('base-url')
         var searchInput = $('#searchInput');
         var searchResults = $('#searchResults');
 
@@ -40,14 +41,15 @@
                 searchResults.append('<li class="list-group-item">No results found</li>');
             } else {
                 $.each(results, function(index, result) {
-                    image_path = `<img src=${result.image_path} class='img-thumbnail' width='64px' height='64px'>`
+                    var image_path = base_url + result.image_path;
+                    console.log(image_path)
+                    image_path = `<img src="${image_path}" class='img-thumbnail' width='64px' height='64px'>`
                     searchResults.append(`<li class="list-group-item">
                     <div class="d-flex">
                         <div class="container">
                             ${image_path}
-                            <a href="/view-item/${result.prod_code}'
-                            <p><strong>${result.name}</strong></p>
-                            <p>Price: ${result.price} Rs</p>
+                           <a href="/view-item/${result.product_code}"><p><strong>${result.name}</strong></p></a>
+                            <p>Price: ${result.price} Rs</p>      
                         </div>
                     </div>
                     </li>`);
