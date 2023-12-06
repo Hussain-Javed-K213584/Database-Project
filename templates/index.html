@@ -69,7 +69,7 @@
           <a class="nav-link active" aria-current="page" href="{{url_for('index')}}">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/view-item-accessories">Accessories</a>
+          <a class="nav-link" href="/view-item-shirts">T-Shirts</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/view-item-jeans">Jeans</a>
@@ -78,7 +78,7 @@
           <a class="nav-link" href="/view-item-shoes">Shoes</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/view-item-shirts">T-Shirts</a>
+          <a class="nav-link" href="/view-item-accessories">Accessories</a>
         </li>
         {% if current_user.id == 1%}
         <li class="nav-item">
@@ -106,7 +106,7 @@
       {% endif %}
       {% if current_user.is_authenticated %}
       <div class="d-flex ms-3 mt-3 gap-3">
-        <form action="/" method="get">
+        <form action="/settings" method="get">
           <div class="mb-3">
             <button class="btn btn-primary">{{ current_user.Name }}</button>
           </div>

@@ -131,6 +131,11 @@ def index():
 @login_required
 def admin_panel():
     return render_template('/admin_panel.html')
+
+@app.route('/settings')
+@login_required
+def settings():
+    return render_template('user_settings.html')
     
 @app.route('/delete/<product_code>', methods=['GET', 'POST'])
 @admin_only
@@ -375,7 +380,7 @@ def purchase_form(item_code):
             db.session.commit()
             print("Update executed")
             # Add the product as purchased in orders table
-            order = Orders(total_price=item_list[0].price, qty_ordered=qty_purchased ,name=item_list[0].name,
+            order = Orders(total_price=item_list[0].price * qty_purchased, qty_ordered=qty_purchased ,name=item_list[0].name,
                         users_id=current_user.id, image_path=item_list[0].image_path)
             db.session.add(order)
             db.session.commit()
