@@ -455,7 +455,7 @@ def purchase_form(item_code):
             db.session.commit()
             print("orders updated")
         elif button_click == 'add-to-cart':
-            pass
+            return redirect(url_for('cart', prod_code=item_list[0].prod_code), code=307)
     return redirect(url_for('orders_page', username=current_user.Name))
 
 from flask import jsonify
@@ -529,6 +529,7 @@ def login():
             return redirect('/login')
         login_user(user=user)
         session['logged_in'] = True
+        session['cart'] = []
         return redirect('/')
     return render_template('login.html')
 
@@ -537,8 +538,33 @@ def logout():
     logout_user()
     if session['logged_in']:
         del session['logged_in']
+        del session['cart']
     flash('Logged out Successfully', 'success')
     return redirect('/')
+
+# This route adds an item to cart and returns to current page
+@app.route('/cart-add-<prod_code>', methods=['GET', 'POST'])
+@login_required
+def cart(prod_code):
+    if request.method == 'POST':
+        item = ProductTable.query.filter(ProductTable.prod_code == prod_code).all()
+        # initialize the cart
+        cart = session.get('cart', [])
+        cart.append({
+            'item_name': item[0].name,
+            'item_price': int(item[0].price) * int(request.form.get('quantity')),
+            'item_qty': request.form.get('quantity'),
+            'item_image': item[0].image_path
+        
+        })
+        session['cart'] = cart # Update the session with the new cart
+        print(session['cart'])
+    return redirect(url_for('product_view', item_code=prod_code))
+
+@app.route('/view-cart')
+@login_required
+def view_cart():
+    return render_template('cart.html', cart=session['cart'])
 
 @app.route('/view-item-<item_name>')
 def view_item_subset(item_name):
