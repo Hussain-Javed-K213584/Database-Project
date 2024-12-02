@@ -7,9 +7,13 @@ from helper import generate_product_code, upload_file
 from datetime import datetime
 from functools import wraps
 import re
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'super secret!'
+app.secret_key = os.getenv('SESSION_SECRET')
 app.config['UPLOAD_FOLDER'] = 'static/images'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg'}
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///wavy.db'
